@@ -3,6 +3,7 @@ const routerpermissions = express.Router()
 
 let permissions = require("../data/permissions")
 let usuarios = require("../data/user")
+let authorizers = require("../data/authorizers")
 
 routerpermissions.get("/", (req, res) => {res.json(permissions)})
 
@@ -31,10 +32,39 @@ routerpermissions.post("/", (req, res) => {
     permissions.push({
         id:lastid+1,
         text:text,
-        approbedBy:[],
+        approvedBy:[],
         userId:listusers[0].id
     })
     res.json({id:lastid+1})
+})
+
+routerpermissions.put("/:id/approvedBy", (req, res) => {
+    let permissionsid = req.params.id
+    let email = req.body.email
+    let password = req.body.password
+
+    //Autenticar
+    let autorizado = authorizers.find(a => a.email == email && a.password == password)
+
+    if(autorizado == undefined){
+        return res.status(401).json({error: "no autorizado"})
+    }
+
+    //Validar
+    let id = authorizers.find(a => a.id == permissionsid)
+
+    if(id == undefined){
+        return res.status(400).json({error: "no existe la id especificada"})
+    }
+
+    //Todo OK
+    let permiso = permissions.find(
+        p => p.id = permissionsid
+    )
+
+    permiso.approvedBy.push(autorizado.id)
+
+    res.json(permiso)
 })
 
 module.exports = routerpermissions
