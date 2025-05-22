@@ -5,7 +5,33 @@ let permissions = require("../data/permissions")
 let usuarios = require("../data/user")
 let authorizers = require("../data/authorizers")
 
-routerpermissions.get("/", (req, res) => {res.json(permissions)})
+
+routerpermissions.get("/:id", (req, res) => {
+        let id = req.params.id
+
+        if(id == undefined){
+            return res.status(400).json({error: "no hay id"})
+        }
+
+        let permiso = permissions.find(u => u.id == id)
+
+        if(permiso == undefined){
+            return res.status(400).json({error: "no existe el usuario"})
+        }
+
+        res.json(permiso)
+    })
+
+    routerpermissions.get("/", (req, res) => {
+        let texto = req.query.text
+
+        if(texto != undefined){
+            let permisoscontexto = permissions.filter(p=>p.text.includes(text))
+            return res.json(permisoscontexto)
+        }
+
+        return res.status(400).json({error:"parametro de query indefinido"})
+    })
 
 routerpermissions.post("/", (req, res) => {
     let text = req.body.text
